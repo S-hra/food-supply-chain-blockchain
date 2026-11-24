@@ -1,0 +1,56 @@
+ Food Supply Chain Traceability using Blockchain
+
+A tamper-evident, multi-party batch tracking prototype with digital signatures.
+Built for a Blockchain Technology course project.
+
+The problem
+Food moves from farm to collection center to processor to distributor to retailer. Each party keeps its own records and nobody fully trusts the others', so spoilage goes unnoticed, fraud is easy and recalls are slow.
+
+ What the prototype shows
+- Hash-chain ledger (SHA-256): any change to a stored record breaks the chain and is detected.
+- Digital signatures (Ed25519): every record is signed by its sender, and public keys are stored on the chain.
+- Smart-contract rules (7, in this order): known party, valid signature, role matches the step, batch registered, steps in order, not expired, temperature check (out of range = recorded and FLAGGED).
+- Streamlit dashboard:Overview, Batch lookup, Flagged and blocked, Recall, Tamper check.
+- Smart attacker demo: an attacker who edits a record and rebuilds every hash is still caught, because the signature check fails.
+
+ Results (synthetic data)
+- 100 batches, 8 products, 23 parties, 504 events
+- 600 blocks on the chain, 28 transactions blocked
+- 6 of 6 inserted problem types caught (4 of 4 each), 0 false alarms on 80 normal batches
+- Batch B0007: 11.4 °C edited to 4.0 °C, detected at block 148
+
+The problems were inserted by the author, so this shows the rules work as designed, not real-world accuracy.
+
+How to run
+1. Install Python 3.10 or newer.
+2. Install the libraries (all free, no API key):
+   
+   pip install -r requirements.txt
+   
+3. Create the data and the ledger:
+   
+   python make_data.py
+   
+4. Start the dashboard:
+   
+   python -m streamlit run app.py
+   
+   Then open http://localhost:8501 in your browser.
+
+You can also run `food_supply_chain_blockchain.ipynb` (Cell 1, then 2, then 3) to see the detection results and the tamper demos.
+
+Files
+| File | Purpose |
+|---|---|
+| `make_data.py` | Generates synthetic data and keys, builds the signed blockchain, saves `data/synthetic/ledger.json` and `rejected_log.csv` |
+| `app.py` | Streamlit dashboard (reads the ledger, never changes it) |
+| `food_supply_chain_blockchain.ipynb` | Same code in 3 cells, with the detection results and tamper demos |
+
+ Limitations
+- The system cannot confirm that entered data is true. A signature proves who wrote a record, not that it is true.
+- It does not verify that the physical food matches the batch ID.
+- It is a single-computer simulation of a permissioned blockchain, not a real distributed network. Demo private keys are derived from party IDs so results repeat; a real system keeps them secret.
+- The data is synthetic, and temperature limits and shelf life are assumptions, not official limits.
+
+ Future work
+IoT sensors writing to the chain, tamper-proof QR/RFID/NFC tags, a multi-node network (for example Hyperledger Fabric), proper key management, and a pilot with a real cold-chain company.
